@@ -52,7 +52,7 @@ void Chain::insertBack(const Block & ndata){
  */
 void Chain::moveBack(int startPos, int len, int dist){
   /* your code here */
-	if(len>0){
+	if(len>0 && dist >0){
 	
 
 		Node* startNode = walk(head_,startPos);
@@ -63,7 +63,7 @@ void Chain::moveBack(int startPos, int len, int dist){
 		beginNode = walk(head_,startPos-1);
 	
 		if(startPos+len-1+dist>length_){
-			destNode = walk(head_, startPos + dist + len - 1);
+			destNode = walk(head_, length_);
 		}
 		else{
 			destNode = walk(head_, startPos+len-1+dist);
@@ -160,19 +160,20 @@ void Chain::weave(Chain & other) { // leaves other empty.
 	
 	Node* curr = new Node();
 	Node* now = new Node();
-	Node* record = new Node();
 	now = head_ -> next;
-	curr = other.head_ -> next;
+	Chain* cpyChain = new Chain(other);
+	other.clear();
+	curr = cpyChain -> head_ -> next;
 	
-	if(length_ != other.length_){
+	if(length_ != cpyChain->length_){
 		cout << "Block sizes differ." << endl;
 	}
 
 	else{
-		for(int i=0;i<other.length_;i++){
+		for(int i=0;i<cpyChain->length_;i++){
 
-			other.head_ -> next = curr -> next;
-			curr -> next -> prev = other.head_;
+			cpyChain->head_ -> next = curr -> next;
+			curr -> next -> prev = cpyChain->head_;
 
 			curr -> prev = now;
 			curr -> next = now -> next;
@@ -180,14 +181,17 @@ void Chain::weave(Chain & other) { // leaves other empty.
 			now -> next = curr;
 			now -> prev = now->prev->next;
 
-			curr = other.head_ -> next;
+			curr = cpyChain->head_ -> next;
 			now = now -> next -> next;
 
 			length_++;
 		}
+
 		head_->prev = walk(head_,length_);
+		
 	}
 
+	
 }	
 
 
@@ -198,15 +202,21 @@ void Chain::weave(Chain & other) { // leaves other empty.
  */
 void Chain::clear() {
   /* your code here */
-	Node* curr = head_ -> next;
-	while(length_>1){
-		curr = curr -> next;
-		delete[] curr -> prev;
-		length_--;
+	if(!empty()){
+		Node* curr = head_ -> next;
+		Node* next = new Node();
+
+		while(curr != head_){
+			next = curr -> next;
+			delete curr;
+			length_--;
+			curr = next;
+		}
+		head_ -> prev = head_;
+		head_ -> next = head_;
 	}
-	delete[] curr;
-	length_--;
 }
+
 
 /**
  * Makes the current object into a copy of the parameter:
@@ -217,16 +227,18 @@ void Chain::clear() {
  */
 void Chain::copy(Chain const& other) {
   /* your code here */
-	Node* curr = other.head_;
-    head_ = new Node();
-    head_->next = head_;
-    head_->prev = head_;
-    length_ = 0;
-	while(curr->next != other.head_){
-		Block* copyData = new Block();
-		*copyData = curr->data;
-		insertBack(*copyData);
+	Node* curr = other.head_ -> next;
+	const Block *now = new Block();
+	
+	for(int i=0;i<other.length_;i++){
+		now = &curr -> data;
+		insertBack(*now);
 		curr = curr -> next;
 	}
 
+	this->length_ = other.length_;
+	this->height_ = other.height_;
+	this->width_ = other.width_;
+
 }
+ 
